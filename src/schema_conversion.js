@@ -14,9 +14,9 @@ const isYupSchema = (input, config) => {
     throw new Error('Input schema must be an object')
   }
 
-  if(config.enforceYupSchema) {
-    config.yupSchema.forEach( (prop) => {
-      if(!Object.prototype.hasOwnProperty.call(input, prop)){
+  if (config.enforceYupSchema) {
+    config.yupSchema.forEach((prop) => {
+      if (!Object.prototype.hasOwnProperty.call(input, prop)) {
         throw new Error(`Yup schemas should have '${prop}' property defined`)
       }
     })
@@ -35,12 +35,10 @@ const mergeObjects = (target, ...sources) => {
       if (isObject(source[key])) {
         if (!target[key]) target[key] = {}
         mergeObjects(target[key], source[key])
-      } 
-      else if (isArray(source[key]) && isArray(target[key])) {
-        target[key] = target[key].concat(source[key]) 
-      }
-      else {
-        Object.assign(target, { [key]: source[key] })
+      } else if (isArray(source[key]) && isArray(target[key])) {
+        target[key] = target[key].concat(source[key])
+      } else {
+        Object.assign(target, {[key]: source[key]})
       }
     }
   }
@@ -50,18 +48,18 @@ const mergeObjects = (target, ...sources) => {
 
 
 const getFirstMatch = (needle, haystack) => {
-  let result = haystack.find( test => {
+  let result = haystack.find(test => {
     return needle === test.OPTIONS.name
   })
-  
+
   if (result)
     return field.OPTIONS.name
 }
 
 
 const findFirstMatchingConditionKey = (name, yupField) => {
-  let matchingCondition = yupField._conditions.find( condition => {
-    if(condition.refs.length)
+  let matchingCondition = yupField._conditions.find(condition => {
+    if (condition.refs.length)
       return name === condition.refs[0].key
     return false
   })
@@ -71,7 +69,7 @@ const findFirstMatchingConditionKey = (name, yupField) => {
 
 const getType = (yupField, config) => {
   let searchArr = config.yupToSwaggerType[yupField._type]
-  if(!searchArr) {
+  if (!searchArr) {
     throw new Error(`"${yupField._type}" type support must be added manually. At a minimum, add "null" as first array element.`)
   }
 
@@ -79,7 +77,7 @@ const getType = (yupField, config) => {
   result = (testResults.length) ? testResults[0][0] : null
 
   //default value is null, should be first element in searchArr
-  return { type: result || searchArr[0], yupType: yupField._type }
+  return {type: result || searchArr[0], yupType: yupField._type}
 }
 
 
@@ -91,16 +89,15 @@ const getFormat = (yupField, config) => {
     config
   )
 
-  if(!testResults.length) {
-    //check field conditions if no format derived from field tests 
+  if (!testResults.length) {
+    //check field conditions if no format derived from field tests
     let conditionFormat = Object.entries(config.yupConditionKeyToSwaggerFormat)
-      .find( (arrElement) => {
+      .find((arrElement) => {
         return findFirstMatchingConditionKey(arrElement[0], yupField)
       })
 
     format = (conditionFormat) ? conditionFormat[1] : config.yupToSwaggerFormat[yupField._type][0]
-  }
-  else {
+  } else {
     format = testResults[0][0]
   }
 
@@ -111,7 +108,7 @@ const getFormat = (yupField, config) => {
 const getMiscAttributes = (yupField, config, yupType) => {
   let searchArr = Object.keys(config.yupToSwaggerConditions[yupType] || {})
   let testResults = searchTests(yupField, searchArr, config)
-    .map( arr => {
+    .map(arr => {
       return [config.yupToSwaggerConditions[yupType][arr[0]], arr[1]]
     })
   return testResults
@@ -119,18 +116,18 @@ const getMiscAttributes = (yupField, config, yupType) => {
 
 
 const searchTests = (yupField, searchArr, config) => {
-  return searchArr.map( (searchTerm) => {
+  return searchArr.map((searchTerm) => {
     let value
     let matchingTest = yupField.tests
-      .find( test => {
+      .find(test => {
         return searchTerm === test.OPTIONS.name
       })
 
-    if(matchingTest) {
+    if (matchingTest) {
       value = (matchingTest.OPTIONS.params) ? Object.entries(matchingTest.OPTIONS.params)[0][1] : true
-      return [ searchTerm, value ]
+      return [searchTerm, value]
     }
-  }).filter( x => typeof x !== 'undefined' )
+  }).filter(x => typeof x !== 'undefined')
 }
 
 const getNullable = (yupField, config) => {
@@ -145,7 +142,7 @@ const getDefault = (yupField, config) => {
 
 const getProps = (name, schema, config) => {
   let result = {}
-  let { type, yupType } = getType(schema, config)
+  let {type, yupType} = getType(schema, config)
   let format = getFormat(schema, config)
   let miscAttrs = getMiscAttributes(schema, config, yupType)
   let nullable = getNullable(schema, config)
@@ -153,16 +150,22 @@ const getProps = (name, schema, config) => {
   let required = false
 
   result.type = type
-  if (format)  result.format = format
-  if (nullable)  result.nullable = nullable
-  if (_default)  {
+  if (format) result.format = format
+  if (nullable) result.nullable = nullable
+  if (_default) {
     result.default = (typeof _default === 'function') ? _default() : _default
   }
-  if (miscAttrs.length) miscAttrs.forEach( arr => {
+  if (miscAttrs.length) miscAttrs.forEach(arr => {
     result[arr[0]] = arr[1]
   })
 
-  return  { [name] : result }
+  if (result.type === 'array') {
+    result.items = {}
+    result.items.type = schema._subType._type
+    result.items.enum = Array.from(schema._subType._whitelist.list)
+  }
+
+  return {[name]: result}
 }
 
 
@@ -176,11 +179,11 @@ const propsToSwagger = (title, description, props) => {
     properties: {}
   }
 
-  props.forEach (object => {
+  props.forEach(object => {
 
     let keyname = Object.keys(object)[0]
     if (object[keyname].required) {
-      output.required.push(keyname)    
+      output.required.push(keyname)
       delete object[keyname].required
     }
 
