@@ -165,6 +165,12 @@ const getProps = (name, schema, config) => {
     result.items.enum = Array.from(schema._subType._whitelist.list)
   }
 
+  if (result.type === 'mixed') {
+    if (schema._whitelist) {
+      result.enum = Array.from(schema._whitelist.list)
+    }
+  }
+
   return {[name]: result}
 }
 

@@ -120,6 +120,10 @@ const defaults = {
       "byte",
       "binary",
       "password"
+    ],
+    "mixed": [
+      null,
+      "mixed"
     ]
   },
   "yupToSwaggerType": { 
@@ -130,7 +134,8 @@ const defaults = {
     "boolean": ["boolean"],
     "number": ["number", "integer"],
     "string": ["string"],
-    "date": ["string"]
+    "date": ["string"],
+    "mixed": ["mixed"]
   }
 }
 

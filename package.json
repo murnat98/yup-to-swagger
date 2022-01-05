@@ -4,7 +4,7 @@
   "description": "Convert your Yup schema to a Swagger schema",
   "main": "src/main.js",
   "scripts": {
-    "test": "node test/tests.js"
+    "test": "node test/tests.ts"
   },
   "author": "tecfu <help@tecfu.com>",
   "license": "MIT",
